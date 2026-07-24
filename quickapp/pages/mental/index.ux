@@ -1,0 +1,84 @@
+<template>
+  <div class="page mental-page">
+    <div class="top-bar">
+      <text class="back-btn" @click="goBack">‹ 返回</text>
+      <text class="page-title">口算训练</text>
+      <text class="score-text">积分: {{points}}</text>
+    </div>
+    <text class="section-title">选择题库</text>
+    <text class="section-desc">选择一个分类开始练习</text>
+    <scroll class="bank-list" scroll-y="true">
+      <block for="{{questionBanks}}">
+        <div class="bank-card" @click="startQuiz($item.id)">
+          <div class="bank-icon {{$item.id==='equations'?'icon-eq':'icon-ar'}}">
+            <text class="bank-icon-text">{{$item.icon}}</text>
+          </div>
+          <div class="bank-info">
+            <text class="bank-name">{{$item.name}}</text>
+            <text class="bank-desc">{{$item.description}}</text>
+            <text class="bank-count">{{$item.questions.length}} 道题</text>
+          </div>
+          <text class="bank-arrow">›</text>
+        </div>
+      </block>
+    </scroll>
+    <div class="hint-bar"><text class="hint-text">答对一题+1分，中途可随时返回</text></div>
+  </div>
+</template>
+<script>
+import router from '@system.router'; import storage from '@system.storage';
+var banks=[
+  {id:'equations',name:'解方程',description:'一元一次方程求解',icon:'x',questions:[
+    {id:1,q:'x + 5 = 10',a:'5',opts:['3','5','10','15']},{id:2,q:'x - 3 = 7',a:'10',opts:['4','7','10','21']},
+    {id:3,q:'2x = 12',a:'6',opts:['6','10','12','24']},{id:4,q:'x / 4 = 3',a:'12',opts:['7','4','12','1']},
+    {id:5,q:'x + 8 = 15',a:'7',opts:['7','8','15','23']},{id:6,q:'3x - 6 = 9',a:'5',opts:['3','5','9','15']},
+    {id:7,q:'x/2 + 1 = 5',a:'8',opts:['2','4','8','10']},{id:8,q:'2x + 3 = 11',a:'4',opts:['2','4','8','11']},
+    {id:9,q:'5x - 5 = 20',a:'5',opts:['4','5','15','25']},{id:10,q:'x + x = 14',a:'7',opts:['2','7','14','28']},
+    {id:11,q:'3x + 4 = 19',a:'5',opts:['3','5','15','19']},{id:12,q:'x - 12 = 8',a:'20',opts:['4','8','12','20']},
+    {id:13,q:'6x = 42',a:'7',opts:['6','7','36','48']},{id:14,q:'x/3 + 2 = 6',a:'12',opts:['4','6','12','18']},
+    {id:15,q:'4x - 8 = 24',a:'8',opts:['4','8','16','32']},{id:16,q:'x + 15 = 30',a:'15',opts:['5','15','30','45']},
+    {id:17,q:'2x + 5 = 21',a:'8',opts:['5','8','16','21']},{id:18,q:'x/5 = 4',a:'20',opts:['5','4','20','25']},
+    {id:19,q:'7x - 7 = 42',a:'7',opts:['6','7','35','49']},{id:20,q:'x + 25 = 50',a:'25',opts:['2','25','50','75']}]},
+  {id:'arithmetic',name:'四则运算',description:'加减乘除混合运算',icon:'±',questions:[
+    {id:1,q:'3 + 5 × 2 = ?',a:'13',opts:['13','16','10','11']},{id:2,q:'12 ÷ 4 + 3 = ?',a:'6',opts:['4','5','6','7']},
+    {id:3,q:'8 - 2 × 3 = ?',a:'2',opts:['18','2','6','24']},{id:4,q:'20 ÷ 5 + 7 = ?',a:'11',opts:['4','7','11','14']},
+    {id:5,q:'9 + 6 ÷ 2 = ?',a:'12',opts:['7','12','9','15']},{id:6,q:'15 - 3 × 4 = ?',a:'3',opts:['48','12','3','8']},
+    {id:7,q:'4 × 5 + 6 = ?',a:'26',opts:['26','44','20','30']},{id:8,q:'18 ÷ 3 - 2 = ?',a:'4',opts:['6','4','3','12']},
+    {id:9,q:'7 + 8 × 2 = ?',a:'23',opts:['30','15','23','17']},{id:10,q:'30 ÷ 6 + 5 = ?',a:'10',opts:['5','10','6','11']},
+    {id:11,q:'6 × 7 - 8 = ?',a:'34',opts:['42','34','50','28']},{id:12,q:'25 - 5 × 4 = ?',a:'5',opts:['80','20','0','5']},
+    {id:13,q:'9 × 3 + 7 = ?',a:'34',opts:['27','34','90','24']},{id:14,q:'48 ÷ 8 + 9 = ?',a:'15',opts:['6','15','57','7']},
+    {id:15,q:'12 + 8 ÷ 4 = ?',a:'14',opts:['5','14','20','10']},{id:16,q:'5 × 6 - 7 = ?',a:'23',opts:['30','23','13','37']},
+    {id:17,q:'36 ÷ 9 + 8 = ?',a:'12',opts:['4','12','44','9']},{id:18,q:'14 - 2 × 5 = ?',a:'4',opts:['60','10','4','20']},
+    {id:19,q:'8 × 8 - 9 = ?',a:'55',opts:['64','55','73','15']},{id:20,q:'45 ÷ 5 + 6 = ?',a:'15',opts:['9','11','15','51']}]}
+];
+export default{
+  private:{questionBanks:[],points:0},
+  onShow(){this.loadPoints();this.questionBanks=banks;},
+  onReady(){this.loadPoints();this.questionBanks=banks;},
+  loadPoints(){var self=this;storage.get({key:'ZMath_Points',success:function(d){self.points=(d&&d!=='')?(parseInt(d,10)||0):0;},fail:function(){self.points=0;}});},
+  goBack(){router.back();},
+  startQuiz(bankId){router.push({uri:'pages/mental-quiz',params:{bankId:bankId}});}
+};
+</script>
+<style>
+@import '../../style/comm.css';
+.mental-page{padding:16px;flex-direction:column;background-color:#0f1923;width:100%;height:100%;}
+.top-bar{flex-direction:row;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.back-btn{font-size:22px;color:#00e5ff;}.page-title{font-size:30px;font-weight:bold;color:#fff;}
+.score-text{font-size:20px;color:#ffd740;}
+.section-title{font-size:26px;font-weight:bold;color:#fff;margin-bottom:4px;}
+.section-desc{font-size:18px;color:#607d8b;margin-bottom:12px;}
+.bank-list{flex-direction:column;flex:1;}
+.bank-card{flex-direction:row;align-items:center;background-color:#1a2a3a;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #2a3a4a;}
+.bank-icon{width:52px;height:52px;border-radius:26px;justify-content:center;align-items:center;margin-right:12px;}
+.icon-eq{background:linear-gradient(135deg,#4a148c,#7b1fa2);}
+.icon-ar{background:linear-gradient(135deg,#00695c,#00897b);}
+.bank-icon-text{font-size:28px;font-weight:bold;color:#fff;}
+.bank-info{flex:1;flex-direction:column;}
+.bank-name{font-size:26px;font-weight:bold;color:#fff;}
+.bank-desc{font-size:18px;color:#90a4ae;margin-top:2px;}
+.bank-count{font-size:16px;color:#546e7a;margin-top:2px;}
+.bank-arrow{font-size:30px;color:#546e7a;margin-left:8px;}
+.hint-bar{padding:8px;justify-content:center;align-items:center;margin-top:5px;}
+.hint-text{font-size:16px;color:#455a64;text-align:center;}
+</style>

@@ -1,0 +1,19 @@
+﻿<script>
+export default {
+  onCreate() {
+    console.log('[ZMath] app onCreate');
+  },
+  onShow() {
+    console.log('[ZMath] app onShow');
+  },
+  onHide() {
+    console.log('[ZMath] app onHide');
+  },
+  onDestroy() {
+    console.log('[ZMath] app onDestroy');
+  },
+  onError(err) {
+    console.log('[ZMath] error: ' + (err && err.message));
+  }
+}
+</script>

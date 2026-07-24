@@ -1,0 +1,104 @@
+﻿<template>
+  <div class="page g24">
+    <div class="top">
+      <text class="bk" @click="goBack">‹ 返回</text>
+      <text class="ti">24点</text>
+      <text class="sc">+1分/题</text>
+    </div>
+    <div class="nums">
+      <div class="nc" for="{{numbers}}"><text class="nv">{{}}</text></div>
+    </div>
+    <div class="farea">
+      <div class="finner">
+        <block for="{{formula}}">
+          <div class="fslot" @click="rm($idx)">
+            <text class="stxt {{$item.t==='ph'?'sph':''}}">{{$item.v}}</text>
+          </div>
+        </block>
+        <div class="fph" if="{{formula.length===0}}"><text class="pht">点选或拖拽元素</text></div>
+      </div>
+    </div>
+    <div class="tools">
+      <text class="tl">可用元素</text>
+      <div class="tg">
+        <block for="{{avail}}">
+          <div class="ti tn" @click="addN($item.v,$item.i)"><text class="tt">{{$item.v}}</text></div>
+        </block>
+        <div class="ti to" @click="addO('+')"><text class="tt">+</text></div>
+        <div class="ti to" @click="addO('-')"><text class="tt">−</text></div>
+        <div class="ti to" @click="addO('×')"><text class="tt">×</text></div>
+        <div class="ti to" @click="addO('÷')"><text class="tt">÷</text></div>
+        <div class="ti tp" @click="addP()"><text class="tt">( )</text></div>
+      </div>
+    </div>
+    <div class="acts">
+      <div class="ab ac" @click="clear"><text class="at">清除</text></div>
+      <div class="ab ad" @click="rmLast"><text class="at">退格</text></div>
+      <div class="ab an" @click="newG"><text class="at">新题</text></div>
+      <div class="ab ao" @click="check"><text class="at">确认</text></div>
+    </div>
+    <div class="res {{rt}}" if="{{sr}}"><text class="rtext">{{rmsg}}</text></div>
+  </div>
+</template>
+<script>
+import router from '@system.router'; import storage from '@system.storage';
+function rc(){return Math.floor(Math.random()*13)+1;}
+export default {
+  private:{numbers:[],formula:[],avail:[],used:[],sr:false,rt:'',rmsg:''},
+  onReady(){this.newG();},
+  newG(){let n=[];for(let i=0;i<4;i++)n.push(rc());this.numbers=n;this.formula=[];this.avail=n.map(function(v,i){return{v:v,i:i};});this.used=[];this.sr=false;},
+  goBack(){router.back();},
+  addN(v,i){if(this.used.includes(i))return;this.used.push(i);this.formula.push({t:'n',v:String(v),oi:i});this.sr=false;},
+  addO(o){this.formula.push({t:'o',v:o});this.sr=false;},
+  addP(){this.formula.push({t:'lp',v:'(',ip:true});this.formula.push({t:'ph',v:'?'});this.formula.push({t:'rp',v:')',ip:true});this.sr=false;},
+  rm(idx){
+    if(idx<0||idx>=this.formula.length)return;
+    var it=this.formula[idx];
+    if(it.t==='n'&&it.oi!==undefined){var i=this.used.indexOf(it.oi);if(i>=0)this.used.splice(i,1);}
+    if(it.t==='lp'&&it.ip){var e=this.formula.findIndex(function(el,i){return i>idx&&el.t==='rp'&&el.ip;});if(e>=0){this.formula.splice(idx,e-idx+1);return;}}
+    else if(it.t==='rp'&&it.ip){var s=this.formula.findIndex(function(el,i){return i<idx&&el.t==='lp'&&el.ip;});if(s>=0){this.formula.splice(s,idx-s+1);return;}}
+    this.formula.splice(idx,1);
+  },
+  rmLast(){if(this.formula.length>0)this.rm(this.formula.length-1);},
+  clear(){this.formula=[];this.used=[];this.sr=false;},
+  check(){
+    if(this.formula.length===0){this.sr=true;this.rt='err';this.rmsg='请先构建算式';return;}
+    if(this.used.length<4){this.sr=true;this.rt='err';this.rmsg='请使用全部4个数字';return;}
+    var s='';for(var idx=0;idx<this.formula.length;idx++){var it=this.formula[idx];if(it.t==='ph')continue;s+=it.v;}
+    var c=s.replace(/×/g,'*').replace(/÷/g,'/');
+    if(!/^[\d+\-*/() ]+$/.test(c)){this.sr=true;this.rt='err';this.rmsg='算式格式有误';return;}
+    try{var r=eval(c);if(Math.abs(r-24)<0.0001){this.sr=true;this.rt='ok';this.rmsg='✓ 正确! +1积分';this.addPts();}else{this.sr=true;this.rt='err';this.rmsg='✗ 结果='+(Math.round(r*100)/100)+'≠24';}}
+    catch(e){this.sr=true;this.rt='err';this.rmsg='算式有误';}
+  },
+  addPts(){var self=this;storage.get({key:'ZMath_Points',success:function(d){var cur=(d&&d!=='')?(parseInt(d,10)||0):0;storage.set({key:'ZMath_Points',value:String(cur+1)});},fail:function(){storage.set({key:'ZMath_Points',value:'1'});}});}
+};
+</script>
+<style>
+@import '../../style/comm.css';
+.g24{padding:12px;flex-direction:column;background-color:#0f1923;width:100%;height:100%;}
+.top{flex-direction:row;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.bk{font-size:20px;color:#00e5ff;}.ti{font-size:28px;font-weight:bold;color:#fff;}.sc{font-size:16px;color:#ffd740;}
+.nums{flex-direction:row;justify-content:center;margin-bottom:10px;}
+.nc{width:64px;height:64px;background:linear-gradient(135deg,#ff6f00,#ff8f00);border-radius:12px;justify-content:center;align-items:center;margin:0 4px;}
+.nv{font-size:32px;font-weight:bold;color:#fff;}
+.farea{width:100%;min-height:60px;border:2px dashed #4a6a8a;border-radius:12px;margin-bottom:10px;background-color:#0d1520;padding:6px;}
+.finner{flex-direction:row;align-items:center;flex-wrap:wrap;}
+.fslot{min-width:32px;height:40px;border:1px solid #3a5a7a;border-radius:6px;justify-content:center;align-items:center;margin:2px;padding:0 4px;background-color:#1a2a3a;}
+.stxt{font-size:24px;color:#fff;font-weight:bold;}.sph{color:#546e7a;font-style:italic;}
+.fph{width:100%;justify-content:center;align-items:center;padding:12px;}.pht{font-size:18px;color:#455a64;}
+.tools{flex-direction:column;margin-bottom:8px;}.tl{font-size:18px;color:#607d8b;margin-bottom:4px;}
+.tg{flex-direction:row;flex-wrap:wrap;justify-content:center;}
+.ti{width:62px;height:48px;border-radius:10px;justify-content:center;align-items:center;margin:2px;border:1px solid transparent;}
+.tn{background:linear-gradient(135deg,#1565c0,#1976d2);border-color:#2196f3;}
+.to{background:linear-gradient(135deg,#00838f,#0097a7);border-color:#00bcd4;}
+.tp{background:linear-gradient(135deg,#4a148c,#6a1b9a);border-color:#9c27b0;}
+.tt{font-size:24px;font-weight:bold;color:#fff;}
+.acts{flex-direction:row;justify-content:center;margin-bottom:6px;}
+.ab{flex:1;height:40px;border-radius:20px;justify-content:center;align-items:center;margin:0 2px;}
+.ac{background-color:#37474f;}.ad{background-color:#546e7a;}
+.an{background-color:#1565c0;}.ao{background-color:#2e7d32;}
+.at{font-size:20px;color:#fff;font-weight:bold;}
+.res{padding:6px 14px;border-radius:14px;justify-content:center;align-items:center;}
+.ok{background-color:#1b5e20;}.err{background-color:#b71c1c;}
+.rtext{font-size:20px;color:#fff;font-weight:bold;}
+</style>

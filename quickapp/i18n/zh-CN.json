@@ -1,0 +1,7 @@
+﻿{
+  "app": { "name": "ZMath", "subtitle": "数学思维训练" },
+  "home": { "title": "ZMath", "points": "积分", "game24": "24点", "game24Desc": "四则运算挑战", "mental": "口算训练", "mentalDesc": "多种题库练习", "version": "v1.0.0" },
+  "game24": { "title": "24点", "back": "返回", "score": "+1分/题", "placeholder": "点选或拖拽元素", "tools": "可用元素", "clear": "清除", "backspace": "退格", "newGame": "新题", "confirm": "确认", "correct": "✓ 正确! +1积分", "wrong": "✗ 结果=", "not24": "≠24", "errEmpty": "请先构建算式", "errNumbers": "请使用全部4个数字", "errFormat": "算式格式有误", "errCalc": "算式有误" },
+  "mental": { "title": "口算训练", "points": "积分", "selectBank": "选择题库", "selectDesc": "选择一个分类开始练习", "questions": "道题", "hint": "答对一题+1分，中途可随时返回" },
+  "quiz": { "exit": "退出", "q_prefix": "第", "q_suffix": "题", "correct": "✓ 答对了! +1分", "wrong": "✗ 正确答案: ", "next": "下一题", "viewResult": "查看成绩", "completed": "练习完成!", "earned": "获得", "points": "积分", "percent": "%正确率", "backToBanks": "返回题库" }
+}
