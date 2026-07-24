@@ -1,0 +1,7 @@
+﻿{
+  "app": { "name": "ZMath", "subtitle": "Math Training" },
+  "home": { "title": "ZMath", "points": "Points", "game24": "24 Game", "game24Desc": "Arithmetic Challenge", "mental": "Mental Math", "mentalDesc": "Multiple Question Banks", "version": "v1.0.0" },
+  "game24": { "title": "24 Game", "back": "Back", "score": "+1 pt/q", "placeholder": "Tap or drag elements", "tools": "Elements", "clear": "Clear", "backspace": "Del", "newGame": "New", "confirm": "Check", "correct": "✓ Correct! +1 pt", "wrong": "✗ Result=", "not24": "≠24", "errEmpty": "Build expression first", "errNumbers": "Use all 4 numbers", "errFormat": "Invalid format", "errCalc": "Error" },
+  "mental": { "title": "Mental Math", "points": "Points", "selectBank": "Select Bank", "selectDesc": "Choose a category", "questions": "questions", "hint": "+1 pt per correct answer" },
+  "quiz": { "exit": "Exit", "q_prefix": "Q", "q_suffix": "", "correct": "✓ Correct! +1 pt", "wrong": "✗ Answer: ", "next": "Next", "viewResult": "Result", "completed": "Completed!", "earned": "Earned", "points": "pts", "percent": "% correct", "backToBanks": "Back to Banks" }
+}

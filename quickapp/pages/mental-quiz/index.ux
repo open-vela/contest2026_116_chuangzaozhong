@@ -1,0 +1,93 @@
+<template>
+  <div class="page quiz-page">
+    <div class="top-bar">
+      <text class="back-btn" @click="exitQuiz">‹ 返回</text>
+      <text class="quiz-title">{{bankName}}</text>
+      <text class="score-text">{{points}}分</text>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:{{progressPct}}%;"></div></div>
+    <text class="progress-text">第{{currentIdx}}/{{totalQ}}题</text>
+    <div class="question-area"><text class="question-text">{{currentQ.q}}</text></div>
+    <div class="options-area">
+      <div class="option-item" for="{{currentQ.opts}}" @click="selectAnswer($idx)">
+        <div class="option-radio"><text class="radio-label">{{$item}}</text></div>
+        <div class="option-badge"><text class="badge-text">{{$idx + 1}}</text></div>
+      </div>
+    </div>
+    <div class="feedback-area" if="{{answered}}">
+      <text class="feedback-text">{{resultText}}</text>
+    </div>
+    <div class="quiz-actions">
+      <div class="quiz-btn btn-skip" @click="nextQuestion" if="{{answered && currentIdx < totalQ}}"><text class="quiz-btn-text">下一题</text></div>
+      <div class="quiz-btn btn-done" @click="showSummary" if="{{answered && currentIdx >= totalQ}}"><text class="quiz-btn-text">查看成绩</text></div>
+    </div>
+    <div class="summary-overlay" if="{{showSummaryOverlay}}">
+      <div class="summary-card">
+        <text class="summary-title">练习完成!</text>
+        <text class="summary-score">{{correctCount}}/{{totalQ}}</text>
+        <text class="summary-points">获得{{earnedPoints}}积分</text>
+        <text class="summary-percent">{{scorePercent}}%正确率</text>
+        <div class="summary-btn" @click="exitQuiz"><text class="summary-btn-text">返回题库</text></div>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+import router from '@system.router'; import storage from '@system.storage';
+var eqs=[{id:1,q:'x + 5 = 10',a:'5',opts:['3','5','10','15']},{id:2,q:'x - 3 = 7',a:'10',opts:['4','7','10','21']},{id:3,q:'2x = 12',a:'6',opts:['6','10','12','24']},{id:4,q:'x / 4 = 3',a:'12',opts:['7','4','12','1']},{id:5,q:'x + 8 = 15',a:'7',opts:['7','8','15','23']},{id:6,q:'3x - 6 = 9',a:'5',opts:['3','5','9','15']},{id:7,q:'x/2 + 1 = 5',a:'8',opts:['2','4','8','10']},{id:8,q:'2x + 3 = 11',a:'4',opts:['2','4','8','11']},{id:9,q:'5x - 5 = 20',a:'5',opts:['4','5','15','25']},{id:10,q:'x + x = 14',a:'7',opts:['2','7','14','28']},{id:11,q:'3x + 4 = 19',a:'5',opts:['3','5','15','19']},{id:12,q:'x - 12 = 8',a:'20',opts:['4','8','12','20']},{id:13,q:'6x = 42',a:'7',opts:['6','7','36','48']},{id:14,q:'x/3 + 2 = 6',a:'12',opts:['4','6','12','18']},{id:15,q:'4x - 8 = 24',a:'8',opts:['4','8','16','32']},{id:16,q:'x + 15 = 30',a:'15',opts:['5','15','30','45']},{id:17,q:'2x + 5 = 21',a:'8',opts:['5','8','16','21']},{id:18,q:'x/5 = 4',a:'20',opts:['5','4','20','25']},{id:19,q:'7x - 7 = 42',a:'7',opts:['6','7','35','49']},{id:20,q:'x + 25 = 50',a:'25',opts:['2','25','50','75']}];
+var ars=[{id:1,q:'3 + 5 x 2 = ?',a:'13',opts:['13','16','10','11']},{id:2,q:'12 / 4 + 3 = ?',a:'6',opts:['4','5','6','7']},{id:3,q:'8 - 2 x 3 = ?',a:'2',opts:['18','2','6','24']},{id:4,q:'20 / 5 + 7 = ?',a:'11',opts:['4','7','11','14']},{id:5,q:'9 + 6 / 2 = ?',a:'12',opts:['7','12','9','15']},{id:6,q:'15 - 3 x 4 = ?',a:'3',opts:['48','12','3','8']},{id:7,q:'4 x 5 + 6 = ?',a:'26',opts:['26','44','20','30']},{id:8,q:'18 / 3 - 2 = ?',a:'4',opts:['6','4','3','12']},{id:9,q:'7 + 8 x 2 = ?',a:'23',opts:['30','15','23','17']},{id:10,q:'30 / 6 + 5 = ?',a:'10',opts:['5','10','6','11']},{id:11,q:'6 x 7 - 8 = ?',a:'34',opts:['42','34','50','28']},{id:12,q:'25 - 5 x 4 = ?',a:'5',opts:['80','20','0','5']},{id:13,q:'9 x 3 + 7 = ?',a:'34',opts:['27','34','90','24']},{id:14,q:'48 / 8 + 9 = ?',a:'15',opts:['6','15','57','7']},{id:15,q:'12 + 8 / 4 = ?',a:'14',opts:['5','14','20','10']},{id:16,q:'5 x 6 - 7 = ?',a:'23',opts:['30','23','13','37']},{id:17,q:'36 / 9 + 8 = ?',a:'12',opts:['4','12','44','9']},{id:18,q:'14 - 2 x 5 = ?',a:'4',opts:['60','10','4','20']},{id:19,q:'8 x 8 - 9 = ?',a:'55',opts:['64','55','73','15']},{id:20,q:'45 / 5 + 6 = ?',a:'15',opts:['9','11','15','51']}];
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+export default{
+  private:{bankName:'',questions:[],currentIdx:0,totalQ:0,currentQ:{q:'',a:'',opts:[]},selectedIdx:-1,answered:false,isCorrect:false,correctCount:0,showSummaryOverlay:false,earnedPoints:0,points:0,progressPct:0,resultText:'',scorePercent:0},
+  onReady(){
+    var id=this.$page && this.$page.params && this.$page.params.bankId;
+    if(id==='equations'){this.bankName='解方程';var s=shuffle(eqs);this.questions=s;this.totalQ=s.length;this.currentIdx=1;this.currentQ=s[0];this.progressPct=(1/s.length)*100;}
+    else if(id==='arithmetic'){this.bankName='四则运算';var s=shuffle(ars);this.questions=s;this.totalQ=s.length;this.currentIdx=1;this.currentQ=s[0];this.progressPct=(1/s.length)*100;}
+    this.loadPts();
+  },
+  selectAnswer(idx){
+    if(this.answered)return;this.selectedIdx=idx;this.answered=true;
+    var opt=this.currentQ.opts[idx];this.isCorrect=(opt===this.currentQ.a);
+    if(this.isCorrect){this.correctCount++;this.earnedPoints++;this.addPts();this.resultText='正确! +1分';}
+    else{this.resultText='错误! 正确答案: '+this.currentQ.a;}
+  },
+  nextQuestion(){
+    if(this.currentIdx>=this.totalQ){this.showSummaryOverlay=true;this.scorePercent=Math.round(this.correctCount/this.totalQ*100);return;}
+    this.currentIdx++;this.currentQ=this.questions[this.currentIdx-1];this.selectedIdx=-1;this.answered=false;this.isCorrect=false;this.resultText='';this.progressPct=(this.currentIdx/this.totalQ)*100;
+  },
+  showSummary(){this.showSummaryOverlay=true;this.scorePercent=Math.round(this.correctCount/this.totalQ*100);},
+  loadPts(){var self=this;storage.get({key:'ZMath_Points',success:function(d){self.points=(d&&d!=='')?(parseInt(d,10)||0):0;},fail:function(){self.points=0;}});},
+  addPts(){var self=this;storage.get({key:'ZMath_Points',success:function(d){var cur=(d&&d!=='')?(parseInt(d,10)||0):0;storage.set({key:'ZMath_Points',value:String(cur+1)});self.points=cur+1;},fail:function(){storage.set({key:'ZMath_Points',value:'1'});self.points=1;}});},
+  exitQuiz(){router.back();}
+};
+</script>
+<style>
+@import '../../style/comm.css';
+.quiz-page{padding:12px;flex-direction:column;background-color:#0f1923;width:100%;height:100%;}
+.top-bar{flex-direction:row;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.back-btn{font-size:20px;color:#00e5ff;}.quiz-title{font-size:26px;font-weight:bold;color:#fff;}.score-text{font-size:18px;color:#ffd740;}
+.progress-bar{width:100%;height:6px;background-color:#1a2a3a;border-radius:3px;margin-bottom:3px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#00e5ff,#76ff03);border-radius:3px;}
+.progress-text{font-size:14px;color:#607d8b;text-align:center;margin-bottom:10px;}
+.question-area{background-color:#1a2a3a;border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid #2a3a4a;justify-content:center;align-items:center;min-height:70px;}
+.question-text{font-size:28px;font-weight:bold;color:#fff;text-align:center;}
+.options-area{flex-direction:column;gap:8px;margin-bottom:10px;}
+.option-item{flex-direction:row;align-items:center;background-color:#1a2a3a;border-radius:10px;padding:10px 14px;border:1px solid #2a3a4a;}
+.option-radio{flex:1;}.radio-label{font-size:24px;color:#fff;}
+.option-badge{width:28px;height:28px;border-radius:14px;justify-content:center;align-items:center;background-color:#37474f;}
+.badge-text{font-size:16px;color:#fff;font-weight:bold;}
+.feedback-area{padding:6px 0;margin-bottom:6px;}
+.feedback-text{font-size:20px;font-weight:bold;text-align:center;color:#76ff03;}
+.quiz-actions{flex-direction:row;justify-content:center;}
+.quiz-btn{padding:10px 32px;border-radius:20px;justify-content:center;align-items:center;}
+.btn-skip{background-color:#1565c0;}.btn-done{background-color:#2e7d32;}
+.quiz-btn-text{font-size:22px;color:#fff;font-weight:bold;}
+.summary-overlay{position:fixed;left:0;top:0;right:0;bottom:0;background-color:rgba(0,0,0,0.7);justify-content:center;align-items:center;z-index:100;}
+.summary-card{background-color:#1a2a3a;border-radius:20px;padding:24px;flex-direction:column;align-items:center;border:2px solid #00e5ff;width:280px;}
+.summary-title{font-size:28px;font-weight:bold;color:#00e5ff;margin-bottom:10px;}
+.summary-score{font-size:42px;font-weight:bold;color:#fff;margin-bottom:6px;}
+.summary-points{font-size:20px;color:#ffd740;margin-bottom:6px;}
+.summary-percent{font-size:18px;color:#76ff03;margin-bottom:16px;}
+.summary-btn{background:linear-gradient(135deg,#00e5ff,#76ff03);border-radius:20px;padding:10px 32px;}
+.summary-btn-text{font-size:22px;color:#0f1923;font-weight:bold;}
+</style>

@@ -1,0 +1,55 @@
+<template>
+  <div class="page zmath-home">
+    <div class="title-bar">
+      <text class="app-title">ZMath</text>
+      <text class="app-subtitle">数学思维训练</text>
+    </div>
+    <div class="points-bar">
+      <text class="star-icon-text">⭐</text>
+      <text class="points-text">积分: {{points}}</text>
+    </div>
+    <div class="menu-grid">
+      <div class="menu-item" @click="openGame24">
+        <div class="menu-icon icon-24"><text class="icon-text">24</text></div>
+        <text class="menu-label">24点</text>
+        <text class="menu-desc">四则运算挑战</text>
+      </div>
+      <div class="menu-item" @click="openMental">
+        <div class="menu-icon icon-mental"><text class="icon-text">±</text></div>
+        <text class="menu-label">口算训练</text>
+        <text class="menu-desc">多种题库练习</text>
+      </div>
+    </div>
+    <text class="version-text">v1.0.0</text>
+  </div>
+</template>
+<script>
+import router from '@system.router'; import storage from '@system.storage';
+export default {
+  private:{points:0},
+  onShow(){this.loadPoints();},
+  onReady(){this.loadPoints();},
+  loadPoints(){var self=this;storage.get({key:'ZMath_Points',success:function(d){if(d!==null&&d!==undefined&&d!==''){self.points=parseInt(d,10)||0;}else{self.points=0;}},fail:function(){self.points=0;}});},
+  openGame24(){router.push({uri:'pages/game24'});},
+  openMental(){router.push({uri:'pages/mental'});}
+};
+</script>
+<style>
+@import '../../style/comm.css';
+.zmath-home{padding:30px;flex-direction:column;align-items:center;background-color:#0f1923;width:100%;height:100%;}
+.title-bar{flex-direction:column;align-items:center;margin-top:20px;margin-bottom:15px;}
+.app-title{font-size:48px;font-weight:bold;color:#00e5ff;letter-spacing:8px;}
+.app-subtitle{font-size:22px;color:#607d8b;margin-top:5px;}
+.points-bar{flex-direction:row;align-items:center;justify-content:center;background-color:#1a2a3a;border-radius:30px;padding:10px 30px;margin-bottom:25px;border:1px solid #2a3a4a;}
+.star-icon-text{font-size:30px;margin-right:10px;}
+.points-text{font-size:32px;color:#ffd740;font-weight:bold;}
+.menu-grid{flex-direction:column;width:100%;}
+.menu-item{flex-direction:column;align-items:center;justify-content:center;background-color:#1a2a3a;border-radius:24px;padding:25px 20px;margin-bottom:20px;border:1px solid #2a3a4a;}
+.menu-icon{width:80px;height:80px;border-radius:40px;justify-content:center;align-items:center;margin-bottom:12px;}
+.icon-24{background:linear-gradient(135deg,#ff6f00,#ff8f00);}
+.icon-mental{background:linear-gradient(135deg,#00c853,#69f0ae);}
+.icon-text{font-size:36px;font-weight:bold;color:#fff;}
+.menu-label{font-size:32px;font-weight:bold;color:#fff;margin-bottom:5px;}
+.menu-desc{font-size:22px;color:#90a4ae;}
+.version-text{font-size:20px;color:#455a64;margin-top:10px;}
+</style>
