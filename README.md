@@ -7,6 +7,11 @@
 
 ## 作品简介
 
+视频链接:https://www.bilibili.com/video/BV11kga6FEJb/?spm_id_from=333.1387.homepage.video_card.click&vd_source=b2c016b34a91791c5155677d95d1cd61
+
+<img width="232" height="255" alt="屏幕截图 2026-07-24 173008" src="https://github.com/user-attachments/assets/ae5779a3-b69e-4a10-a986-e823bbfbc277" />
+
+
 ZMath 是一款适用于小米 openVela 手环/手表的数学思维训练快应用。包含 24点游戏 和 口算训练 两大功能模块，全部通过触摸拖拽/点选操作，无需键盘输入，完美适配小屏设备。
 
 | 功能 | 说明 |
@@ -21,17 +26,19 @@ ZMath 是一款适用于小米 openVela 手环/手表的数学思维训练快应
 
 ```
 contest2026_116_chuangzaozhong/
-├── quickAPP/                    # ZMath 快应用源码
-│   ├── app.ux
-│   ├── manifest.json
-│   ├── pages/
-│   │   ├── index/index.ux
-│   │   ├── game24/index.ux
-│   │   ├── mental/index.ux
-│   │   └── mental-quiz/index.ux
-│   ├── common/logo.png
-│   ├── i18n/
-│   └── style/comm.css
+├── quickapp/                    # ZMath 快应用项目
+│   ├── package.json             # 构建依赖（aiot-toolkit）
+│   └── src/                     # 快应用源码
+│       ├── app.ux
+│       ├── manifest.json
+│       ├── pages/
+│       │   ├── index/index.ux
+│       │   ├── game24/index.ux
+│       │   ├── mental/index.ux
+│       │   └── mental-quiz/index.ux
+│       ├── common/logo.png
+│       ├── i18n/
+│       └── style/comm.css
 ├── logs/                        # AI Coding 日志
 └── README.md
 ```
@@ -46,10 +53,15 @@ contest2026_116_chuangzaozhong/
 
 ## 构建方式
 
+需要 Node.js（建议 ≥16）。在仓库根目录执行：
+
 ```bash
-cd quickAPP/
-aiot build
+cd quickapp/
+npm install      # 安装构建依赖（aiot-toolkit）
+npm run build    # 等价于 npx aiot build，构建产物输出到 build/ 目录
 ```
+
+如需发布版 rpk 包，执行 `npm run release`（产物在 `dist/` 目录）。
 
 ## 开发日志
 
